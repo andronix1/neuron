@@ -9,7 +9,13 @@ float b1[] = {0, 1};
 float b2[] = {1, 0};
 float b3[] = {1, 1};
 
-#define binary_train_data(a, b, c, d) train_sample_of()
+#define binary_train_data(a, b, c, d) \
+	train_sample_of(4, \
+		expected_result(b0, a), \
+		expected_result(b1, b), \
+		expected_result(b2, c), \
+		expected_result(b3, d)	\
+	)
 
 #define TRAIN_EPOCHS 100000
 #define TRAIN_RATE 1e-2
@@ -18,24 +24,9 @@ int main() {
 	srand(100);
 
 	// Training "AND Gate" perceptron
-	train_sample_t and_sample = train_sample_of(4,
-		expected_result(b0, 0),
-		expected_result(b1, 0),
-		expected_result(b2, 0),
-		expected_result(b3, 1)	
-	);
-	train_sample_t or_sample = train_sample_of(4,
-		expected_result(b0, 0),
-		expected_result(b1, 1),
-		expected_result(b2, 1),
-		expected_result(b3, 1)
-	);
-	train_sample_t nand_sample = train_sample_of(4,	
-		expected_result(b0, 1),
-		expected_result(b1, 1),
-		expected_result(b2, 1),
-		expected_result(b3, 0)
-	);
+	train_sample_t and_sample = binary_train_data(0, 0, 0, 1);
+	train_sample_t or_sample = binary_train_data(0, 1, 1, 1);
+	train_sample_t nand_sample = binary_train_data(1, 1, 1, 0);
 
 	neuron_t and = neuron_new_random(2, sigmoidf);
 	neuron_t or = neuron_new_random(2, sigmoidf);
