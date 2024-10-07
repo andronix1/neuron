@@ -57,3 +57,8 @@ float *multilayer_model_predict(const multilayer_model_t *model, const float *in
 
 	return result;
 }
+
+void multilayer_model_free(const multilayer_model_t *model) {	
+	model_layers_free(&model->layers);
+	layer_ids_free(&model->outputs);
+}

@@ -9,7 +9,9 @@ float b1[] = {0, 1};
 float b2[] = {1, 0};
 float b3[] = {1, 1};
 
-#define TRAIN_EPOCHS 1000000
+#define binary_train_data(a, b, c, d) train_sample_of()
+
+#define TRAIN_EPOCHS 100000
 #define TRAIN_RATE 1e-2
 
 int main() {
@@ -73,7 +75,11 @@ int main() {
 			free(result);
 		}
 	}	
-	
+
+	multilayer_model_free(&model);	
+	train_sample_free(&and_sample);
+	train_sample_free(&or_sample);
+	train_sample_free(&nand_sample);
 	neuron_free(&or);
 	neuron_free(&nand);
 	neuron_free(&and);

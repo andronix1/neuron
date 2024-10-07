@@ -33,3 +33,4 @@ typedef struct {
 #define multilayer_model(_layers, _outputs) { .layers = _layers, .outputs = _outputs }
 
 float *multilayer_model_predict(const multilayer_model_t *model, const float *input);
+void multilayer_model_free(const multilayer_model_t *model);
