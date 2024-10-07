@@ -3,8 +3,7 @@
 #include <stdint.h>
 #include <malloc.h>
 #include "train.h"
-#include "func.h"
-#include "rand.h"
+#include "mathf.h"
 
 typedef struct {
 	float *weights;
@@ -13,17 +12,20 @@ typedef struct {
 	func_t activate;
 } neuron_t;
 
-void neuron_init(neuron_t *neuron, const size_t size, func_t activate);
+neuron_t neuron_new_random(const size_t size, const func_t activate);
+void neuron_init(neuron_t *neuron, const size_t size, const func_t activate);
 void neuron_random(neuron_t *neuron);
-void neuron_free(neuron_t *neuron);
-
-float neuron_predict(neuron_t *neuron, const float *input);
-float neuron_cost(neuron_t *neuron, train_sample_t *sample);
+void neuron_free(const neuron_t *neuron);
+float neuron_predict(const neuron_t *neuron, const float *input);
+float neuron_cost(neuron_t *neuron, const train_sample_t *sample);
 
 typedef struct {
 	float *weights;
 	float bias;
 } neuron_cost_derivatives_t;
 
-void neuron_train_epoch(neuron_t *neuron, train_sample_t *sample, float rate);
-void neuron_print_predictions(neuron_t *neuron, train_sample_t *sample);
+neuron_cost_derivatives_t neuron_cost_derivatives(neuron_t *neuron, const train_sample_t *sample);
+void neuron_cost_derivatives_free(const neuron_cost_derivatives_t *derivatives);
+void neuron_train_epoch(neuron_t *neuron, const train_sample_t *sample, const float rate);
+void neuron_train_epochs(neuron_t *neuron, const train_sample_t *sample, const float rate, const size_t epochs);
+void neuron_print_predictions(const neuron_t *neuron, const train_sample_t *sample);

@@ -1,5 +1,5 @@
 CC=gcc
-CFLAGS=
+CFLAGS=-O3
 
 LD=gcc
 LD_FLAGS=-lm
@@ -14,10 +14,10 @@ run: build
 build: build-obj
 	$(LD) $(BUILD_OBJ_DIR)/*.o $(LD_FLAGS) -o $(BUILD_OUTPUT)
 
-build-obj: setup main neuron rand
+build-obj: setup main neuron mathf train layer
 
 %: %.c
-	$(CC) -c $^ -o $(BUILD_OBJ_DIR)/$@.o
+	$(CC) $(CFLAGS) -c $^ -o $(BUILD_OBJ_DIR)/$@.o
 
 setup:
 	mkdir -p $(BUILD_OBJ_DIR)
