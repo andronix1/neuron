@@ -9,16 +9,19 @@ float b1[] = {0, 1};
 float b2[] = {1, 0};
 float b3[] = {1, 1};
 
+float o0[] = {0};
+float o1[] = {1};
+
 #define binary_train_data(a, b, c, d) \
 	train_sample_of(4, \
-		expected_result(b0, a), \
-		expected_result(b1, b), \
-		expected_result(b2, c), \
-		expected_result(b3, d)	\
+		expected_result(b0, o##a), \
+		expected_result(b1, o##b), \
+		expected_result(b2, o##c), \
+		expected_result(b3, o##d)  \
 	)
 
 #define TRAIN_EPOCHS 100000
-#define TRAIN_RATE 1e-2
+#define TRAIN_RATE 1
 
 int main() {
 	srand(100);
@@ -28,9 +31,9 @@ int main() {
 	train_sample_t or_sample = binary_train_data(0, 1, 1, 1);
 	train_sample_t nand_sample = binary_train_data(1, 1, 1, 0);
 
-	neuron_t and = neuron_new_random(2, sigmoidf);
-	neuron_t or = neuron_new_random(2, sigmoidf);
-	neuron_t nand = neuron_new_random(2, sigmoidf);
+	neuron_t and = neuron_new_random(2, sigmoidf, sigmoidf_derivative);
+	neuron_t or = neuron_new_random(2, sigmoidf, sigmoidf_derivative);
+	neuron_t nand = neuron_new_random(2, sigmoidf, sigmoidf_derivative);
 
 	neuron_train_epochs(&and, &and_sample, TRAIN_RATE, TRAIN_EPOCHS);
 	neuron_train_epochs(&or, &or_sample, TRAIN_RATE, TRAIN_EPOCHS);
@@ -67,10 +70,14 @@ int main() {
 		}
 	}	
 
+	train_sample_t xor_sample = binary_train_data(0, 1, 1, 0);
+	printf("total modal cost: %f\n", multilayer_model_cost(&model, &xor_sample));
+	
 	multilayer_model_free(&model);	
 	train_sample_free(&and_sample);
 	train_sample_free(&or_sample);
 	train_sample_free(&nand_sample);
+	train_sample_free(&xor_sample);
 	neuron_free(&or);
 	neuron_free(&nand);
 	neuron_free(&and);

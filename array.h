@@ -11,6 +11,7 @@
 	} name##_t; \
 	\
 	name##_t name##_of(const size_t count, ...); \
+	void name##_pop(name##_t *arr); \
 	void name##_free(const name##_t *arr);
 
 #define impl_array_type(type, name) \
@@ -25,7 +26,8 @@
 		va_end(args); \
 		name##_t result = {count, data}; \
 		return result; \
-	}
+	} \
+	void name##_pop(name##_t *arr) { arr->len--; } \
 
 #define impl_array_simple_free(name) \
 	void name##_free(const name##_t *arr) { \

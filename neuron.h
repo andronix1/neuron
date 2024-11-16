@@ -10,10 +10,11 @@ typedef struct {
 	float bias;
 	size_t size;
 	func_t activate;
+	func_t activate_derivative;
 } neuron_t;
 
-neuron_t neuron_new_random(const size_t size, const func_t activate);
-void neuron_init(neuron_t *neuron, const size_t size, const func_t activate);
+neuron_t neuron_new_random(const size_t size, const func_t activate, func_t activate_derivative);
+void neuron_init(neuron_t *neuron, const size_t size, const func_t activate, func_t activate_derivative);
 void neuron_random(neuron_t *neuron);
 void neuron_free(const neuron_t *neuron);
 float neuron_predict(const neuron_t *neuron, const float *input);

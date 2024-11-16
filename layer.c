@@ -58,7 +58,22 @@ float *multilayer_model_predict(const multilayer_model_t *model, const float *in
 	return result;
 }
 
+float multilayer_model_cost(multilayer_model_t *model, const train_sample_t *sample) {
+	float result = 0.0;
+	for (size_t i = 0; i < sample->len; i++) {
+		expected_result_t *res = &sample->data[i];
+		float *prediction = multilayer_model_predict(model, res->inputs);
+		for (size_t j = 0; j < model->outputs.len; j++) {
+			float delta = prediction[j] - res->outputs[j];
+			result += delta * delta / sample->len;
+		}
+		free(prediction);
+	}
+	return result;
+}
+
 void multilayer_model_free(const multilayer_model_t *model) {	
 	model_layers_free(&model->layers);
 	layer_ids_free(&model->outputs);
 }
+

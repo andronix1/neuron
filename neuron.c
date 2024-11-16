@@ -1,8 +1,9 @@
 #include "neuron.h"
 
-void neuron_init(neuron_t *neuron, const size_t size, const func_t activate) {
+void neuron_init(neuron_t *neuron, const size_t size, const func_t activate, func_t activate_derivative) {
 	neuron->weights = malloc(sizeof(float) * size);
 	neuron->activate = activate;
+	neuron->activate_derivative = activate_derivative;
 	neuron->size = size;
 }
 
@@ -13,9 +14,9 @@ void neuron_random(neuron_t *neuron) {
 	}
 }
 
-neuron_t neuron_new_random(const size_t size, const func_t activate) {
+neuron_t neuron_new_random(const size_t size, const func_t activate, func_t activate_derivative) {
 	neuron_t result;
-	neuron_init(&result, size, activate);
+	neuron_init(&result, size, activate, activate_derivative);
 	neuron_random(&result);
 	return result;
 }
@@ -24,12 +25,21 @@ void neuron_free(const neuron_t *neuron) {
 	free(neuron->weights);
 }
 
-float neuron_predict(const neuron_t *neuron, const float *input) {
+float neuron_predict_non_acivated(const neuron_t *neuron, const float *input) {
 	float result = neuron->bias;
 	for (size_t i = 0; i < neuron->size; i++) {
 		result += neuron->weights[i] * input[i];
 	}
-	return neuron->activate(result);
+	return result;
+}
+
+float neuron_predict(const neuron_t *neuron, const float *input) {
+	return neuron->activate(neuron_predict_non_acivated(neuron, input));
+}
+
+float neuron_predict_derivative(const neuron_t *neuron, const float *input, size_t wid) {
+	return neuron->activate_derivative(neuron_predict_non_acivated(neuron, input)) * 
+		(wid == neuron->size ? 1 : input[wid]);
 }
 
 float neuron_cost(neuron_t *neuron, const train_sample_t *sample) {
@@ -37,28 +47,40 @@ float neuron_cost(neuron_t *neuron, const train_sample_t *sample) {
 	for (size_t i = 0; i < sample->len; i++) {
 		expected_result_t *res = &sample->data[i];
 		float prediction = neuron_predict(neuron, res->inputs);
-		float delta = prediction - res->output;
+		float delta = prediction - res->outputs[0];
 		result += delta * delta / sample->len;
 	}
 	return result;
 }
 
-#define derivative_eps 1e-2
-#define derivative(cost, argument, output) do { \
-		float start = cost; \
-		argument += derivative_eps; \
-		float end = cost; \
-		argument -= derivative_eps; \
-		output = (end - start) / derivative_eps; \
-	} while(0)
+/*
+ * simple_pred(inputs) = SUM(wid) { ws[wid] * inputs[wid] } + bias
+ * pred(inputs) = activate(simple_pred(inputs))
+ * COST = SUM(pred_id) { (pred(inputs[pred_id]) - res[pred_id]) ** 2 }
+ *
+ * simple_pred'(inputs) d wid = ws[wid]
+ * pred'(inputs) d wid = activate'(simple_pred(inputs)) * simple_pred'(inputs) d wid
+ * COST' = SUM(pred_id) {
+ *	2 * |pred(inputs[pred_id]) - res[pred_id]| * pred'(inputs[pred_id]) d wid
+ * }
+*/
 
-// TODO: make all using formula :)
+float neuron_cost_derivative(neuron_t *neuron, const train_sample_t *sample, size_t wid) {
+	float result = 0.0;
+	for (size_t i = 0; i < sample->len; i++) {
+		expected_result_t *res = &sample->data[i];
+		float prediction = neuron_predict(neuron, res->inputs);
+		float delta = prediction - res->outputs[0];
+		result += delta * neuron_predict_derivative(neuron, res->inputs, wid);
+	}
+	return result;
+}
+
 neuron_cost_derivatives_t neuron_cost_derivatives(neuron_t *neuron, const train_sample_t *sample) {
-	float bias_d;
-	derivative(neuron_cost(neuron, sample), neuron->bias, bias_d);
+	float bias_d = neuron_cost_derivative(neuron, sample, neuron->size);
 	float *weights_d = malloc(sizeof(float) * neuron->size); // TODO: cache allocated memory or set by ptr	
 	for (int i = 0; i < neuron->size; i++) {
-		derivative(neuron_cost(neuron, sample), neuron->weights[i], weights_d[i]);
+		weights_d[i] = neuron_cost_derivative(neuron, sample, i);
 	}
 	neuron_cost_derivatives_t result = {
 		.bias = bias_d,
@@ -97,6 +119,6 @@ void neuron_print_predictions(const neuron_t *neuron, const train_sample_t *samp
 			}
 			printf("%f", res->inputs[j]);
 		}
-		printf(") = %f -> %f\n", result, res->output);
+		printf(") = %f -> %f\n", result, res->outputs[0]);
 	}
 }

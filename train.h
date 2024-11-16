@@ -4,11 +4,11 @@
 
 typedef struct {
 	float *inputs;
-	float output;
+	float *outputs;
 } expected_result_t;
 
-inline expected_result_t expected_result(float *inputs, float output) {      
-	expected_result_t result = { .inputs = inputs, .output = output };
+inline expected_result_t expected_result(float *inputs, float *outputs) {
+	expected_result_t result = { .inputs = inputs, .outputs = outputs };
 	return result;
 }
 
