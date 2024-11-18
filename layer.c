@@ -77,3 +77,33 @@ void multilayer_model_free(const multilayer_model_t *model) {
 	layer_ids_free(&model->outputs);
 }
 
+#define mm_eps_der 1e-3
+
+// TODO: better derivative
+float multilayer_model_derivative(multilayer_model_t *model, const train_sample_t *sample, size_t layer_id, size_t neuron_id, size_t wid) {
+	float a = multilayer_model_cost(model, sample);
+	float *w = &model->layers.data[layer_id].data[neuron_id].neuron.weights[wid];
+	*w += mm_eps_der;
+	float b = multilayer_model_cost(model, sample);
+	*w -= mm_eps_der;
+	return (a - b) / mm_eps_der;
+}
+
+void multilayer_model_train_epoch(multilayer_model_t *model, const train_sample_t *sample, const float rate) {
+	for (size_t lid = 0; lid < model->layers.len; lid++) {
+		layer_t *layer = &model->layers.data[lid];
+		for (size_t nid = 0; nid < layer->len; nid++) {
+			layer_neuron_t *neuron = &layer->data[nid];
+			for (size_t wid = 0; wid < neuron->neuron.size; wid++) {
+				neuron->neuron.weights[wid] += multilayer_model_derivative(model, sample, lid, nid, wid) * rate;
+			}
+		}
+	}
+
+}
+
+void multilayer_model_train_epochs(multilayer_model_t *model, const train_sample_t *sample, const float rate, size_t epochs) {
+	for (size_t i = 0; i < epochs; i++) {
+		multilayer_model_train_epoch(model, sample, rate);
+	}
+}

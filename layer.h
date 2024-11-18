@@ -35,3 +35,5 @@ typedef struct {
 float *multilayer_model_predict(const multilayer_model_t *model, const float *input);
 void multilayer_model_free(const multilayer_model_t *model);
 float multilayer_model_cost(multilayer_model_t *model, const train_sample_t *sample);
+void multilayer_model_train_epoch(multilayer_model_t *model, const train_sample_t *sample, const float rate);
+void multilayer_model_train_epochs(multilayer_model_t *model, const train_sample_t *sample, const float rate, size_t epochs); 
